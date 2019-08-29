@@ -20,7 +20,8 @@
         "illuminate/support": "5.8.*",
         "guzzlehttp/guzzle": "~6.0",
         "campo/random-user-agent" : "*",
-        "ixudra/curl": "6.*"
+        "ixudra/curl": "6.*",
+        "paquettg/php-html-parser": "*"
     },
     "require-dev": {
         "orchestra/testbench": "3.8.*",

@@ -32,21 +32,35 @@ class YandexSerpCurl
                     ['lr' => $this->region_id],
                     ['p' => ($page - 1)]
                 )
-                ->withHeaders($this->headers);
+                ->withHeaders($this->headers)
+                ->returnResponseObject()
+                ->withResponseHeaders();
 
 
-        $client->withOption('CURLOPT_PROXYTYPE', $proxy['proxytype']);
-        $client->withOption('CURLOPT_PROXY', $proxy['ip']);
+        $client->withOption('PROXYTYPE', $proxy['proxytype']);
+        $client->withOption('PROXY', $proxy['ip']);
+        $client->withOption('BINARYTRANSFER', true);
+        $client->withOption('FOLLOWLOCATION', true);
+        $client->withOption('VERBOSE', true);
+        $client->withOption('TIMEOUT', 10);
         
 
         try
         {
-            return $client->get();
+            $request = $client->get();
         }
         catch(\Exception $e)
         {
             dump($e);
         }
+
+        if($request->status !== 200) return false;
+        if(strpos($request->content, "serp-list") < 0) return false;
+
+        //Обрабатываем HTML
+        $data = $this->parseSERPHtml($request->content);
+
+        return $data;
     }
 
     private function setUserAgent()
@@ -57,8 +71,10 @@ class YandexSerpCurl
     private function getProxy()
     {
         $proxy = \ProxyManager::getRandom();
+
         if($proxy['type'] == 'HTTP') $proxy['proxytype'] = CURLPROXY_HTTP;
         if($proxy['type'] == 'SOCKS4') $proxy['proxytype'] = CURLPROXY_SOCKS4;
+
         return $proxy;
     }
 

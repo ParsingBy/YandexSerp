@@ -31,11 +31,17 @@ class YandexSerpJobs
         foreach($db as $db_item)
         {
             $try = 1;
-            while($try < 5)
+            while($try < 7)
             {
                 $return = $this->curl->getSERP($db_item->yandexserp->reqion_id, $db_item->yandexserp->phrase, $db_item->page);
+                
+                if(!$return)
+                {
+                    $try++;
+                    continue;
+                }
+
                 dump($return);
-                $try++;
             }
         }
     }    

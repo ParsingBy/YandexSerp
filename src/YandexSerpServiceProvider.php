@@ -3,6 +3,7 @@
 namespace ParsingBy\YandexSerp;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
 
 class YandexSerpServiceProvider extends ServiceProvider
 {
@@ -41,6 +42,17 @@ class YandexSerpServiceProvider extends ServiceProvider
 
             // Registering package commands.
             // $this->commands([]);
+
+          $this->app->booted(function () {
+                $schedule = app(Schedule::class);
+                $schedule->call(function () {
+                    (new YandexSerp)->doCreatePagesToParse();
+                })->name('ProxyManager_YandexSerp_doCreatePagesToParse')->everyMinute()->withoutOverlapping();
+
+                $schedule->call(function () {
+                    (new YandexSerpJobs)->doParsePages();
+                })->name('ProxyManager_YandexSerpJobs_doParsePages')->everyMinute()->withoutOverlapping();
+            });            
         }
     }
 
@@ -55,14 +67,6 @@ class YandexSerpServiceProvider extends ServiceProvider
         // Register the main class to use with the facade
         $this->app->singleton('yandexserp', function () {
             return new YandexSerp;
-        });
-
-        //Cron
-        $this->app->singleton('parsingby.yandexserp.console.kernel', function($app) {
-            $dispatcher = $app->make(\Illuminate\Contracts\Events\Dispatcher::class);
-            return new \ParsingBy\YandexSerp\Console\Kernel($app, $dispatcher);
-        });
-
-        $this->app->make('parsingby.yandexserp.console.kernel');        
+        });  
     }
 }
