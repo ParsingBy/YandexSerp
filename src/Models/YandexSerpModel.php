@@ -57,7 +57,7 @@ class YandexSerpModel extends Model
 	public function scopeNew($query, $take)
 	{
 		return $query
-			->whereStatus('new')
+			->where($this->table . '.status', '=' , 'new')
 			->inRandomOrder()
 			->take($take);
 	}

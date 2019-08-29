@@ -19,7 +19,7 @@ class YandexSerp extends Migration
             $table->string('phrase');
             $table->smallInteger('fetch_result_pages_count');            
             $table->enum('status', ['new', 'in_progress', 'done'])->default('new');
-            $table->text('result'); 
+            $table->text('result')->nullable(); 
         });
 
         Schema::create('parsing_by_yandex_serp_jobs', function (Blueprint $table) {

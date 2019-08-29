@@ -37,8 +37,16 @@ class YandexSerpJobsModel extends Model
 		}	
 	}
 
+	public function scopeNew($query, $take)
+	{
+		return $query
+			->where($this->table . '.status', '=' , 'new')
+			->inRandomOrder()
+			->take($take);
+	}	
+
 	public function yandexserp()
     {
-        return $this->belongsTo('YandexSerpModel', 'data_id');
+        return $this->belongsTo('ParsingBy\YandexSerp\Models\YandexSerpModel', 'data_id', 'id');
     }	
 }

@@ -2,36 +2,36 @@
 
 namespace ParsingBy\YandexSerp;
 
-use Models\YandexSerpJobsModel;
-use Models\YandexSerpCurl;
+use ParsingBy\YandexSerp\Models\YandexSerpJobsModel;
+use ParsingBy\YandexSerp\Models\YandexSerpCurl;
 
 class YandexSerpJobs
 {
-	private $model;
+    private $model;
 
-	public function __construct()
-	{
-		$this->model = new YandexSerpJobsModel();
+    public function __construct()
+    {
+        $this->model = new YandexSerpJobsModel();
         $this->curl = new YandexSerpCurl();
-	}
+    }
 
     public function add($data_id, $page = 1)
     {
-    	return $this->model->add(array(
-    		'data_id' => $data_id,
-    		'page' => $page
-    	));
+        return $this->model->add(array(
+            'data_id' => $data_id,
+            'page' => $page
+        ));
     }
 
     public function doParsePages()
     {
-        $db = $this->model->yandexserp->new(10)
-        dd($db);
+        $db = $this->model->with('yandexserp')->new(10)->get();
         if(empty($db)) return false;
 
         foreach($db as $db_item)
         {
-            $return = $this->curl->getSERP();
+            $return = $this->curl->getSERP($db_item->yandexserp->reqion_id, $db_item->yandexserp->phrase, $db_item->page);
+            dump($return);
         }
     }    
 
