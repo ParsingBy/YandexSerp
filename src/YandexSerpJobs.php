@@ -25,22 +25,24 @@ class YandexSerpJobs
 
     public function doParsePages()
     {
-        $db = $this->model->with('yandexserp')->new(10)->get();
+        $db = $this->model->with('yandexserp')->new(1)->get();
         if(empty($db)) return false;
 
         foreach($db as $db_item)
         {
             $try = 1;
-            while($try < 7)
+            while($try < 70)
             {
                 $return = $this->curl->getSERP($db_item->yandexserp->reqion_id, $db_item->yandexserp->phrase, $db_item->page);
                 
+                dump('try='.$try."\n");
                 if(!$return)
                 {
                     $try++;
                     continue;
                 }
 
+                $try = 1000;
                 dump($return);
             }
         }

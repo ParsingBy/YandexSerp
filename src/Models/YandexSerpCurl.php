@@ -3,6 +3,7 @@
 namespace ParsingBy\YandexSerp\Models;
 
 use GuzzleHttp\Client;
+use PHPHtmlParser\Dom;
 
 class YandexSerpCurl
 {
@@ -33,16 +34,16 @@ class YandexSerpCurl
                     ['p' => ($page - 1)]
                 )
                 ->withHeaders($this->headers)
-                ->returnResponseObject()
-                ->withResponseHeaders();
+                ->returnResponseObject();
 
 
         $client->withOption('PROXYTYPE', $proxy['proxytype']);
         $client->withOption('PROXY', $proxy['ip']);
         $client->withOption('BINARYTRANSFER', true);
         $client->withOption('FOLLOWLOCATION', true);
-        $client->withOption('VERBOSE', true);
-        $client->withOption('TIMEOUT', 10);
+        $client->withOption('ENCODING', 'gzip');
+       // $client->withOption('VERBOSE', true);
+        $client->withOption('TIMEOUT', 7);
         
 
         try
@@ -55,12 +56,47 @@ class YandexSerpCurl
         }
 
         if($request->status !== 200) return false;
-        if(strpos($request->content, "serp-list") < 0) return false;
+        if(strpos($request->content, "serp-list") < -1) return false;
+
+        \Log::error($request->content);
 
         //Обрабатываем HTML
         $data = $this->parseSERPHtml($request->content);
 
         return $data;
+    }
+
+    public function parseSERPHtml($html)
+    {
+        $dom = (new Dom)->load($html);
+
+        $list = $dom->find('ul.serp-list')[0]->find('li.serp-item');
+
+        dump('count=' . count($list));
+
+        $return = array();
+
+        foreach($list as $item)
+        {
+            if(strpos($item->innerHtml, 'label_border-radius_20">реклама') !== false) continue;
+            $url = $item
+                ->find('a')[0]
+                ->getAttribute('href');
+            $title = $item
+                ->find('.organic__url-text')[0]
+                ->innerHtml;
+            $description = $item
+                ->find('.extended-text__full')[0]
+                ->innerHtml;
+            
+            $return['organic'][] = array(
+                'url' => $url,
+                'title' => $title,
+                'description' => $description
+            );
+        }
+
+        return $return;
     }
 
     private function setUserAgent()

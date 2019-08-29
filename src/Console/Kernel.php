@@ -18,12 +18,6 @@ class Kernel extends ConsoleKernel
     {
         parent::schedule($schedule);
 
-        $schedule->call(function () {
-            (new YandexSerp)->doCreatePagesToParse();
-        })->name('ProxyManager_YandexSerp_doCreatePagesToParse')->everyMinute()->withoutOverlapping();
-
-        $schedule->call(function () {
-            (new YandexSerpJobs)->doParsePages();
-        })->name('ProxyManager_YandexSerpJobs_doParsePages')->everyMinute()->withoutOverlapping();
+        
     }
 }

@@ -18,10 +18,10 @@
     "require": {
         "php": "^7.1",
         "illuminate/support": "5.8.*",
-        "guzzlehttp/guzzle": "~6.0",
         "campo/random-user-agent" : "*",
         "ixudra/curl": "6.*",
-        "paquettg/php-html-parser": "*"
+        "paquettg/php-html-parser": "*",
+        "ammadeuss/laravel-html-dom-parser" : "1.*"
     },
     "require-dev": {
         "orchestra/testbench": "3.8.*",
