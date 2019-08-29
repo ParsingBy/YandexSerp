@@ -6,65 +6,71 @@ use GuzzleHttp\Client;
 
 class YandexSerpCurl
 {
-	private $options = [
-		'headers' => [
-	        'Cache-Control'	=>	'max-age=0',
-	        'Accept'		=> 	'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*//*;q=0.5',
-	        'Connection'	=>	'keep-alive',
-	        'Keep-Alive'	=>	'500',
-	        'Accept-Charset'	=>	'Windows-1251,utf-8;q=0.7,*;q=0.7',
-	        'Accept-Encoding'	=>	'gzip',
-	        'Accept-Language'	=>	'ru-ru,en;q=0.5'
-	    ]
-	];
+    private $headers = [
+        'Cache-Control' =>  'max-age=0',
+        'Accept'        =>  'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*//*;q=0.5',
+        'Connection'    =>  'keep-alive',
+        'Keep-Alive'    =>  '500',
+        'Accept-Charset'    =>  'Windows-1251,utf-8;q=0.7,*;q=0.7',
+        'Accept-Encoding'   =>  'gzip',
+        'Accept-Language'   =>  'ru-ru,en;q=0.5'
+    ];
 
-	private $region_id = 213;
+    private $region_id = 213;
 
-	public function getSERP($region_id, $phrase, $page = 1)
+    public function getSERP($region_id, $phrase, $page = 1)
     {
-    	$phrase = $this->cleanPhrase($phrase);
-    	$this->setRegionId($region_id);
-    	$this->setUserAgent();
+        $phrase = $this->cleanPhrase($phrase);
+        $this->setRegionId($region_id);
+        $this->setUserAgent();
 
-    	$client = $this->client();
-    	
-    	return $client->get('yandsearch', 
-    		['query' => 
-    			['text' => $phrase],
-    			['lr' => $this->region_id],
-    			['p' => ($page - 1)]
-    		]);
-    }
+        $proxy = $this->getProxy();
 
-    private function client()
-    {
- 		return new Client([
-		    'base_uri' => 'https://yandex.ru/',
-		    'timeout'  => 15.0,
-		    'proxy' => $this->getProxy()
-		]);   	
+        $client = \Curl::to('https://yandex.ru/yandsearch')
+                ->withData(
+                    ['text' => $phrase],
+                    ['lr' => $this->region_id],
+                    ['p' => ($page - 1)]
+                )
+                ->withHeaders($this->headers);
+
+
+        $client->withOption('CURLOPT_PROXYTYPE', $proxy['proxytype']);
+        $client->withOption('CURLOPT_PROXY', $proxy['ip']);
+        
+
+        try
+        {
+            return $client->get();
+        }
+        catch(\Exception $e)
+        {
+            dump($e);
+        }
     }
 
     private function setUserAgent()
     {
-    	$this->options['headers']['User-Agent'] = \Campo\UserAgent::random();
+        $this->headers['User-Agent'] = \Campo\UserAgent::random();
     }
 
     private function getProxy()
     {
-    	$proxy = \ProxyManager::getRandom();
-    	return $proxy['type'] . "://" . $proxy['ip'];
+        $proxy = \ProxyManager::getRandom();
+        if($proxy['type'] == 'HTTP') $proxy['proxytype'] = CURLPROXY_HTTP;
+        if($proxy['type'] == 'SOCKS4') $proxy['proxytype'] = CURLPROXY_SOCKS4;
+        return $proxy;
     }
 
     private function setRegionId($region_id)
     {
-    	$this->region_id = $region_id;
+        $this->region_id = $region_id;
     }
 
     private function cleanPhrase($phrase)
     {
-    	$phrase = str_replace(" ","+",$phrase);
-    	return $phrase;
+        $phrase = str_replace(" ","+",$phrase);
+        return $phrase;
     }
 
 }

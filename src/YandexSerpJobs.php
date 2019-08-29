@@ -30,8 +30,13 @@ class YandexSerpJobs
 
         foreach($db as $db_item)
         {
-            $return = $this->curl->getSERP($db_item->yandexserp->reqion_id, $db_item->yandexserp->phrase, $db_item->page);
-            dump($return);
+            $try = 1;
+            while($try < 5)
+            {
+                $return = $this->curl->getSERP($db_item->yandexserp->reqion_id, $db_item->yandexserp->phrase, $db_item->page);
+                dump($return);
+                $try++;
+            }
         }
     }    
 

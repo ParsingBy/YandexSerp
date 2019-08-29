@@ -19,7 +19,8 @@
         "php": "^7.1",
         "illuminate/support": "5.8.*",
         "guzzlehttp/guzzle": "~6.0",
-        "campo/random-user-agent" : "*"
+        "campo/random-user-agent" : "*",
+        "ixudra/curl": "6.*"
     },
     "require-dev": {
         "orchestra/testbench": "3.8.*",
