@@ -56,5 +56,13 @@ class YandexSerpServiceProvider extends ServiceProvider
         $this->app->singleton('yandexserp', function () {
             return new YandexSerp;
         });
+
+        //Cron
+        $this->app->singleton('parsingby.yandexserp.console.kernel', function($app) {
+            $dispatcher = $app->make(\Illuminate\Contracts\Events\Dispatcher::class);
+            return new \ParsingBy\YandexSerp\Console\Kernel($app, $dispatcher);
+        });
+
+        $this->app->make('parsingby.yandexserp.console.kernel');        
     }
 }

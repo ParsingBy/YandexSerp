@@ -3,9 +3,9 @@
 namespace ParsingBy\YandexSerp\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class YandexSerpModel extends Model
+class YandexSerpJobsModel extends Model
 {
-	protected $table = 'parsing_by_yandex_serp';
+	protected $table = 'parsing_by_yandex_serp_jobs';
     protected $primaryKey = 'id';
     public $timestamps = false;
 	
@@ -37,29 +37,8 @@ class YandexSerpModel extends Model
 		}	
 	}
 
-	public function updateStatus($id, $status)
-	{
-		try
-		{
-			\DB::table($this->table)
-				->where('id','=', $id)
-				->update(array(
-					'status' => $status
-				));
-			return true;
-		}
-		catch(\Exception $e)
-		{
-			return array('error' => $e->getMessage());
-		}			
-	}
-
-	public function scopeNew($query, $take)
-	{
-		return $query
-			->whereStatus('new')
-			->inRandomOrder()
-			->take($take);
-	}
-
+	public function yandexserp()
+    {
+        return $this->belongsTo('YandexSerpModel', 'data_id');
+    }	
 }
