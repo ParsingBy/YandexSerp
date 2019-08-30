@@ -2,8 +2,6 @@
 
 namespace ParsingBy\YandexSerp\Models;
 
-use GuzzleHttp\Client;
-
 class YandexSerpCurl
 {
     private $headers = [
