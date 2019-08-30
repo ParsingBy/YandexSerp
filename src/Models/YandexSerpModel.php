@@ -8,6 +8,10 @@ class YandexSerpModel extends Model
 	protected $table = 'parsing_by_yandex_serp';
     protected $primaryKey = 'id';
     public $timestamps = false;
+    protected $guarded = [];
+    protected $casts = [
+        'result' => 'array'
+    ];
 	
 	public function add($data = array())
 	{
@@ -37,23 +41,6 @@ class YandexSerpModel extends Model
 		}	
 	}
 
-	public function updateStatus($id, $status)
-	{
-		try
-		{
-			\DB::table($this->table)
-				->where('id','=', $id)
-				->update(array(
-					'status' => $status
-				));
-			return true;
-		}
-		catch(\Exception $e)
-		{
-			return array('error' => $e->getMessage());
-		}			
-	}
-
 	public function scopeNew($query, $take)
 	{
 		return $query
@@ -61,5 +48,18 @@ class YandexSerpModel extends Model
 			->inRandomOrder()
 			->take($take);
 	}
+
+	public function scopeInProgress($query, $take)
+	{
+		return $query
+			->where($this->table . '.status', '=' , 'in_progress')
+			->inRandomOrder()
+			->take($take);
+	}
+
+	public function yandexserpjobs()
+    {
+        return $this->hasMany('ParsingBy\YandexSerp\Models\YandexSerpJobsModel', 'data_id', 'id');
+    }
 
 }

@@ -50,8 +50,12 @@ class YandexSerpServiceProvider extends ServiceProvider
                 })->name('ProxyManager_YandexSerp_doCreatePagesToParse')->everyMinute()->withoutOverlapping();
 
                 $schedule->call(function () {
+                    (new YandexSerp)->doMergePagesResults();
+                })->name('ProxyManager_YandexSerp_doMergePagesResults')->everyMinute()->withoutOverlapping();
+
+                $schedule->call(function () {
                     (new YandexSerpJobs)->doParsePages();
-                })->name('ProxyManager_YandexSerpJobs_doParsePages')->everyMinute()->withoutOverlapping();
+                })->name('ProxyManager_YandexSerpJobs_doParsePages_' . rand(0,1))->everyMinute()->withoutOverlapping();
             });            
         }
     }

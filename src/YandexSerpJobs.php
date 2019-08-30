@@ -23,19 +23,24 @@ class YandexSerpJobs
         ));
     }
 
+    public function delete($id)
+    {   
+        return $this->model->find($id)->delete();
+    }
+
+
     public function doParsePages()
     {
-        $db = $this->model->with('yandexserp')->new(1)->get();
+        $db = $this->model->with('yandexserp')->new(10)->get();
         if(empty($db)) return false;
 
         foreach($db as $db_item)
         {
             $try = 1;
-            while($try < 70)
+            while($try < 100)
             {
-                $return = $this->curl->getSERP($db_item->yandexserp->reqion_id, $db_item->yandexserp->phrase, $db_item->page);
+                $return = $this->curl->getSERP($db_item->yandexserp->region_id, $db_item->yandexserp->phrase, $db_item->page);
                 
-                dump('try='.$try."\n");
                 if(!$return)
                 {
                     $try++;
@@ -43,9 +48,10 @@ class YandexSerpJobs
                 }
 
                 $try = 1000;
-                dump($return);
+
+                $this->model->find($db_item->id)->update(['result' => $return]);
+                $this->model->find($db_item->id)->update(['status' => 'done']);
             }
         }
-    }    
-
+    } 
 }

@@ -3,7 +3,6 @@
 namespace ParsingBy\YandexSerp\Models;
 
 use GuzzleHttp\Client;
-use PHPHtmlParser\Dom;
 
 class YandexSerpCurl
 {
@@ -18,6 +17,7 @@ class YandexSerpCurl
     ];
 
     private $region_id = 213;
+    private $per_page = 10;
 
     public function getSERP($region_id, $phrase, $page = 1)
     {
@@ -28,11 +28,11 @@ class YandexSerpCurl
         $proxy = $this->getProxy();
 
         $client = \Curl::to('https://yandex.ru/yandsearch')
-                ->withData(
-                    ['text' => $phrase],
-                    ['lr' => $this->region_id],
-                    ['p' => ($page - 1)]
-                )
+                ->withData(array(
+                    'text' => $phrase,
+                    'lr' => $this->region_id,
+                    'p' => ($page - 1)
+                ))
                 ->withHeaders($this->headers)
                 ->returnResponseObject();
 
@@ -41,9 +41,11 @@ class YandexSerpCurl
         $client->withOption('PROXY', $proxy['ip']);
         $client->withOption('BINARYTRANSFER', true);
         $client->withOption('FOLLOWLOCATION', true);
+        $client->withOption('SSL_VERIFYHOST', false);
+        $client->withOption('SSL_VERIFYPEER', false);
         $client->withOption('ENCODING', 'gzip');
-       // $client->withOption('VERBOSE', true);
-        $client->withOption('TIMEOUT', 7);
+        //$client->withOption('VERBOSE', true);
+        $client->withOption('TIMEOUT', 10);
         
 
         try
@@ -58,41 +60,57 @@ class YandexSerpCurl
         if($request->status !== 200) return false;
         if(strpos($request->content, "serp-list") < -1) return false;
 
-        \Log::error($request->content);
-
         //Обрабатываем HTML
         $data = $this->parseSERPHtml($request->content);
+
+        $data = $this->setResultsPositions($data, $page);
 
         return $data;
     }
 
     public function parseSERPHtml($html)
     {
-        $dom = (new Dom)->load($html);
+        $dom = \HTMLDomParser::str_get_html($html);
 
         $list = $dom->find('ul.serp-list')[0]->find('li.serp-item');
-
-        dump('count=' . count($list));
 
         $return = array();
 
         foreach($list as $item)
         {
-            if(strpos($item->innerHtml, 'label_border-radius_20">реклама') !== false) continue;
+            if(strpos($item->innertext, 'label_border-radius_20">реклама') !== false) continue;
+            if(!$item->find('.organic__url-text')) continue;
+
             $url = $item
                 ->find('a')[0]
-                ->getAttribute('href');
+                ->attr['href'];
+
             $title = $item
                 ->find('.organic__url-text')[0]
-                ->innerHtml;
+                ->innertext;
+            $title_text = $item
+                ->find('.organic__url-text')[0]
+                ->text();
+
             $description = $item
                 ->find('.extended-text__full')[0]
-                ->innerHtml;
+                ->innertext();
+            $description_text = $item
+                ->find('.extended-text__full')[0]
+                ->text();
+            $description_text = str_replace("Скрыть","", $description_text);
+            $description_text = trim($description_text);
             
             $return['organic'][] = array(
                 'url' => $url,
-                'title' => $title,
-                'description' => $description
+                'title' => array(
+                    'raw' => $title,
+                    'clean' => $title_text
+                ),
+                'description' => array(
+                    'raw' => $description,
+                    'clean' => $description_text
+                )
             );
         }
 
@@ -123,6 +141,21 @@ class YandexSerpCurl
     {
         $phrase = str_replace(" ","+",$phrase);
         return $phrase;
+    }
+
+    private function setResultsPositions($data, $page)
+    {
+        $new = array();
+
+        $position = 1 + ($page - 1) * $this->per_page;
+
+        foreach($data['organic'] as $organic)
+        {
+            $new['organic'][$position] = $organic;
+            $position++;
+        }
+
+        return $new;
     }
 
 }

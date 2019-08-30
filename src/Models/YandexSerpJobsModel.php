@@ -8,6 +8,10 @@ class YandexSerpJobsModel extends Model
 	protected $table = 'parsing_by_yandex_serp_jobs';
     protected $primaryKey = 'id';
     public $timestamps = false;
+    protected $guarded = [];
+    protected $casts = [
+        'result' => 'array'
+    ];
 	
 	public function add($data = array())
 	{

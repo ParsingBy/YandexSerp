@@ -5,6 +5,7 @@ namespace ParsingBy\YandexSerp;
 use ParsingBy\YandexSerp\Models\YandexSerpModel;
 use ParsingBy\YandexSerp\YandexSerpJobs;
 
+
 class YandexSerp
 {
     private $model;
@@ -54,7 +55,36 @@ class YandexSerp
                 $this->jobs->add($db_item->id, $i);
             }   
 
-            $this->model->updateStatus($db_item->id, 'in_progress');
+           $this->model->find($db_item->id)->update(['status' => 'in_progress']);
         }
     }
+
+    public function doMergePagesResults()
+    {
+        $db = $this->model->with('yandexserpjobs')->inProgress(1000)->get();
+        if(empty($db)) return false;
+
+        foreach($db as $db_item)
+        {
+            foreach($db_item->yandexserpjobs as $job)
+            {
+                if($job->status !== 'done') continue;
+
+                $current_result = (array) $this->model->find($db_item->id)->value('result');
+                $result = array_merge_recursive($current_result, $job->result); //Объединяем с существующими данными в общей таблице
+
+                $this->model->find($db_item->id)->update(['result' => $result]);
+
+                $this->jobs->delete($job->id);
+            }
+
+            //Все страницы обошли по этому запросу
+            if(count($db_item->yandexserpjobs) === 0)
+            {
+                 $this->model->find($db_item->id)->update(['status' => 'done']);
+            }
+        }
+    }
+
+    
 }
