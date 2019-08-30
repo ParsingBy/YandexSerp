@@ -101,6 +101,7 @@ class YandexSerpCurl
             
             $return['organic'][] = array(
                 'url' => $url,
+                'domain' => $this->extract_domain_from_url($url),
                 'title' => array(
                     'raw' => $title,
                     'clean' => $title_text
@@ -154,6 +155,14 @@ class YandexSerpCurl
         }
 
         return $new;
+    }
+
+    private function extract_domain_from_url($url)
+    {
+        $domain = str_replace(array("https://www.", "http://www.","//www."), "", $url);
+        $domain = str_replace(array("https://", "http://","//"), "", $domain);
+        $domain = explode("/", $domain);
+        return $domain[0];
     }
 
 }
