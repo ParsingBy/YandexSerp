@@ -50,7 +50,8 @@
                 "ParsingBy\\YandexSerp\\YandexSerpServiceProvider"
             ],
             "aliases": {
-                "YandexSerp": "ParsingBy\\YandexSerp\\YandexSerpFacade"
+                "YandexSerp": "ParsingBy\\YandexSerp\\YandexSerpFacade",
+                "YandexSerpPositions": "ParsingBy\\YandexSerp\\YandexSerpPositionsFacade"
             }
         }
     }

@@ -71,6 +71,9 @@ class YandexSerpServiceProvider extends ServiceProvider
         // Register the main class to use with the facade
         $this->app->singleton('yandexserp', function () {
             return new YandexSerp;
+        });
+        $this->app->singleton('yandexserppositions', function () {
+            return new YandexSerpPositions;
         });  
     }
 }
